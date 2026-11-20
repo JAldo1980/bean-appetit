@@ -45,8 +45,20 @@ button, input, select { font: inherit; color: inherit; }
 
 main, .top, .foot { max-width: 720px; margin: 0 auto; }
 
+/* ---------- Language toggle ---------- */
+.lang {
+  display: flex; width: fit-content; margin: 14px 0 0 auto; max-width: 720px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 3px;
+}
+.lang button {
+  border: 0; background: transparent; cursor: pointer; min-width: 44px; min-height: 32px;
+  padding: 0 12px; border-radius: 999px; font-size: .8rem; font-weight: 600; letter-spacing: .08em; color: var(--muted);
+}
+.lang button[aria-pressed="true"] { background: var(--mint); color: var(--sage-ink); }
+.lang button:focus-visible { outline: 2px solid #8fb79a; outline-offset: 2px; }
+
 /* ---------- Header ---------- */
-.top { padding: 32px 0 20px; text-align: center; }
+.top { padding: 14px 0 20px; text-align: center; }
 .brand { display: inline-flex; align-items: center; gap: 12px; }
 .bean-mark { width: 40px; height: 40px; fill: var(--blush); stroke: #d8aaa5; stroke-width: 1.5; }
 .bean-mark .crease { fill: none; stroke: #c98f8a; stroke-linecap: round; }
@@ -347,7 +359,7 @@ fieldset.stack legend { padding: 0; }
 /* ---------- Print ---------- */
 @media print {
   body { background: #fff; padding: 0; }
-  .top .tag, .controls, .actions, .foot, .icons, .toast, #burst, .bean-count, .chip button { display: none !important; }
+  .lang, .top .tag, .controls, .actions, .foot, .icons, .toast, #burst, .bean-count, .chip button { display: none !important; }
   .menu { border: 0; margin: 0; padding: 0; }
   .menu::before { display: none; }
   .day { break-inside: avoid; }

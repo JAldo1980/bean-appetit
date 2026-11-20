@@ -15,36 +15,41 @@
 <body data-season="autumn">
   <div id="burst" aria-hidden="true"></div>
 
+  <div class="lang" id="lang" role="group" aria-label="Language" data-i18n-aria="lang_aria">
+    <button type="button" data-lang="en" aria-pressed="true" lang="en">EN</button>
+    <button type="button" data-lang="sk" aria-pressed="false" lang="sk">SK</button>
+  </div>
+
   <header class="top">
     <div class="brand">
       <svg class="bean-mark" viewBox="0 0 40 40" aria-hidden="true"><path d="M9 24c0-8 6-15 14-15 5 0 8 3 8 8 0 8-6 15-14 15-5 0-8-3-8-8z"/><path class="crease" d="M15 27c4-1 8-5 10-10" /></svg>
       <h1 id="appName">Bean Appétit</h1>
     </div>
-    <p class="tag">Seven lunches. Zero dithering.</p>
+    <p class="tag" data-i18n="tag">Seven lunches. Zero dithering.</p>
   </header>
 
   <main>
-    <section class="panel controls" aria-label="Menu settings">
+    <section class="panel controls" aria-label="Menu settings" data-i18n-aria="settings_aria">
       <div class="field">
-        <span class="label" id="seasonLabel">Season</span>
+        <span class="label" id="seasonLabel" data-i18n="season">Season</span>
         <div class="seasons" role="radiogroup" aria-labelledby="seasonLabel" id="seasons"></div>
       </div>
       <div class="field row-fields">
         <label class="select-wrap">
-          <span class="label">Eating</span>
+          <span class="label" data-i18n="eating">Eating</span>
           <select id="diet">
-            <option value="veg">Vegetarian only</option>
-            <option value="fish">Vegetarian + fish</option>
-            <option value="any">Anything goes</option>
+            <option value="veg" data-i18n="diet_veg">Vegetarian only</option>
+            <option value="fish" data-i18n="diet_fish">Vegetarian + fish</option>
+            <option value="any" data-i18n="diet_any">Anything goes</option>
           </select>
         </label>
         <label class="check">
           <input type="checkbox" id="dinners">
-          <span>Include dinner-style dishes</span>
+          <span data-i18n="dinners">Include dinner-style dishes</span>
         </label>
       </div>
       <div class="big-buttons">
-        <button class="btn primary" id="gen" type="button">Generate week</button>
+        <button class="btn primary" id="gen" type="button" data-i18n="generate">Generate week</button>
         <button class="btn boost" id="boost" type="button" aria-pressed="false">
           <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M9 24c0-8 6-15 14-15 5 0 8 3 8 8 0 8-6 15-14 15-5 0-8-3-8-8z"/></svg>
           <span id="boostLabel">Bean Boost!</span>
@@ -52,55 +57,55 @@
       </div>
     </section>
 
-    <section class="menu" id="menu" aria-label="This week's lunch menu">
+    <section class="menu" id="menu" aria-label="This week's lunch menu" data-i18n-aria="menu_aria">
       <div class="menu-head">
-        <p class="eyebrow">Lunch menu</p>
+        <p class="eyebrow" data-i18n="lunch_menu">Lunch menu</p>
         <h2 id="weekTitle">Week of</h2>
-        <p class="boost-flag" id="boostFlag" hidden>Bean Boosted</p>
+        <p class="boost-flag" id="boostFlag" data-i18n="bean_boosted" hidden>Bean Boosted</p>
         <div class="orn" aria-hidden="true"><span></span><i></i><span></span></div>
       </div>
       <ol class="days" id="days"></ol>
       <div class="bean-count" id="beanCount"></div>
     </section>
 
-    <section class="actions" aria-label="More actions">
+    <section class="actions" aria-label="More actions" data-i18n-aria="actions_aria">
       <div class="action-group">
-        <span class="label">Extras</span>
-        <button class="btn soft" type="button" id="addBake">+ Bake or side</button>
-        <button class="btn soft" type="button" id="addSweet">+ Sweet treat</button>
+        <span class="label" data-i18n="extras">Extras</span>
+        <button class="btn soft" type="button" id="addBake" data-i18n="add_bake">+ Bake or side</button>
+        <button class="btn soft" type="button" id="addSweet" data-i18n="add_sweet">+ Sweet treat</button>
       </div>
       <div class="action-group">
-        <button class="btn ghost" type="button" id="copy">Copy as text</button>
-        <button class="btn ghost" type="button" id="print">Print</button>
+        <button class="btn ghost" type="button" id="copy" data-i18n="copy">Copy as text</button>
+        <button class="btn ghost" type="button" id="print" data-i18n="print">Print</button>
       </div>
     </section>
   </main>
 
   <footer class="foot">
-    <button class="link" type="button" id="openAdd">Add a dish</button>
-    <button class="link" type="button" id="openManage">Manage dishes</button>
-    <button class="link" type="button" id="openBackup">Backup</button>
-    <p class="fine">Your favourites and added dishes are saved on this device.</p>
+    <button class="link" type="button" id="openAdd" data-i18n="f_add">Add a dish</button>
+    <button class="link" type="button" id="openManage" data-i18n="f_manage">Manage dishes</button>
+    <button class="link" type="button" id="openBackup" data-i18n="f_backup">Backup</button>
+    <p class="fine" data-i18n="fine">Your favourites and added dishes are saved on this device.</p>
   </footer>
 
   <!-- Day options -->
   <dialog id="dayDlg">
     <form method="dialog" id="dayForm" class="dlg">
       <h3 id="dayDlgTitle">Day</h3>
-      <label class="stack"><span class="label">Choose a dish</span>
+      <label class="stack"><span class="label" data-i18n="choose_dish">Choose a dish</span>
         <select id="dayDish"></select>
       </label>
-      <label class="check"><input type="checkbox" id="dayOff"><span>Eating out or away (skip this day)</span></label>
-      <label class="stack" id="dayOffLabelWrap"><span class="label">What's happening?</span>
-        <input type="text" id="dayOffLabel" placeholder="e.g. Pub lunch, visiting Mum">
+      <label class="check"><input type="checkbox" id="dayOff"><span data-i18n="eating_out">Eating out or away (skip this day)</span></label>
+      <label class="stack" id="dayOffLabelWrap"><span class="label" data-i18n="whats_happening">What's happening?</span>
+        <input type="text" id="dayOffLabel" placeholder="e.g. Pub lunch, visiting Mum" data-i18n-ph="off_ph">
       </label>
-      <label class="stack"><span class="label">Note</span>
-        <input type="text" id="dayNote" placeholder="e.g. chicken for James">
+      <label class="stack"><span class="label" data-i18n="note">Note</span>
+        <input type="text" id="dayNote" placeholder="e.g. chicken for James" data-i18n-ph="note_ph">
       </label>
-      <label class="check"><input type="checkbox" id="dayLess"><span>Show this dish less often</span></label>
+      <label class="check"><input type="checkbox" id="dayLess"><span data-i18n="show_less">Show this dish less often</span></label>
       <div class="dlg-btns">
-        <button class="btn ghost" type="button" data-close>Cancel</button>
-        <button class="btn primary" type="submit" value="save" id="daySave">Save</button>
+        <button class="btn ghost" type="button" data-close data-i18n="cancel">Cancel</button>
+        <button class="btn primary" type="submit" value="save" id="daySave" data-i18n="save">Save</button>
       </div>
     </form>
   </dialog>
@@ -108,34 +113,34 @@
   <!-- Add dish -->
   <dialog id="addDlg">
     <form method="dialog" id="addForm" class="dlg">
-      <h3>Add a dish</h3>
-      <label class="stack"><span class="label">Name</span>
-        <input type="text" id="addName" required placeholder="e.g. Sweet potato and black bean tacos">
+      <h3 data-i18n="add_title">Add a dish</h3>
+      <label class="stack"><span class="label" data-i18n="name">Name</span>
+        <input type="text" id="addName" required placeholder="e.g. Sweet potato and black bean tacos" data-i18n-ph="name_ph">
       </label>
-      <label class="stack"><span class="label">Recipe or page (optional)</span>
-        <input type="text" id="addSource" placeholder="Book and page, or a web link">
+      <label class="stack"><span class="label" data-i18n="source_label">Recipe or page (optional)</span>
+        <input type="text" id="addSource" placeholder="Book and page, or a web link" data-i18n-ph="source_ph">
       </label>
       <fieldset class="stack">
-        <legend class="label">Best in</legend>
+        <legend class="label" data-i18n="best_in">Best in</legend>
         <div class="checks">
-          <label class="check"><input type="checkbox" name="addSeason" value="sp"><span>Spring</span></label>
-          <label class="check"><input type="checkbox" name="addSeason" value="su"><span>Summer</span></label>
-          <label class="check"><input type="checkbox" name="addSeason" value="au"><span>Autumn</span></label>
-          <label class="check"><input type="checkbox" name="addSeason" value="wi"><span>Winter</span></label>
+          <label class="check"><input type="checkbox" name="addSeason" value="sp"><span data-i18n="spring">Spring</span></label>
+          <label class="check"><input type="checkbox" name="addSeason" value="su"><span data-i18n="summer">Summer</span></label>
+          <label class="check"><input type="checkbox" name="addSeason" value="au"><span data-i18n="autumn">Autumn</span></label>
+          <label class="check"><input type="checkbox" name="addSeason" value="wi"><span data-i18n="winter">Winter</span></label>
         </div>
-        <small class="hint">Leave all unticked for an all-year dish.</small>
+        <small class="hint" data-i18n="all_year_hint">Leave all unticked for an all-year dish.</small>
       </fieldset>
       <div class="row-fields">
-        <label class="stack"><span class="label">Contains</span>
+        <label class="stack"><span class="label" data-i18n="contains">Contains</span>
           <select id="addProtein">
-            <option value="veg">Vegetarian</option>
-            <option value="fish">Fish or seafood</option>
-            <option value="meat">Meat</option>
+            <option value="veg" data-i18n="p_veg">Vegetarian</option>
+            <option value="fish" data-i18n="p_fish">Fish or seafood</option>
+            <option value="meat" data-i18n="p_meat">Meat</option>
           </select>
         </label>
-        <label class="stack"><span class="label">Bean or pulse?</span>
+        <label class="stack"><span class="label" data-i18n="bean_or_pulse">Bean or pulse?</span>
           <select id="addBean">
-            <option value="">No</option>
+            <option value="" data-i18n="no">No</option>
             <option value="chickpeas">Chickpeas</option>
             <option value="lentils">Lentils</option>
             <option value="black_beans">Black beans</option>
@@ -151,10 +156,10 @@
           </select>
         </label>
       </div>
-      <label class="check"><input type="checkbox" id="addDinner"><span>Better as a dinner than a lunch</span></label>
+      <label class="check"><input type="checkbox" id="addDinner"><span data-i18n="dinner_better">Better as a dinner than a lunch</span></label>
       <div class="dlg-btns">
-        <button class="btn ghost" type="button" data-close>Cancel</button>
-        <button class="btn primary" type="submit" value="save">Add dish</button>
+        <button class="btn ghost" type="button" data-close data-i18n="cancel">Cancel</button>
+        <button class="btn primary" type="submit" value="save" data-i18n="add_btn">Add dish</button>
       </div>
     </form>
   </dialog>
@@ -163,11 +168,11 @@
   <dialog id="manageDlg" class="wide">
     <div class="dlg">
       <div class="dlg-head">
-        <h3>Manage dishes</h3>
-        <button class="btn ghost small" type="button" data-close>Close</button>
+        <h3 data-i18n="manage_title">Manage dishes</h3>
+        <button class="btn ghost small" type="button" data-close data-i18n="close">Close</button>
       </div>
-      <input type="search" id="manageSearch" placeholder="Search dishes" aria-label="Search dishes">
-      <p class="hint">Heart the ones you love, mark the ones you'd rather see less, hide any you're done with, and tick "bean" to correct my guesses.</p>
+      <input type="search" id="manageSearch" placeholder="Search dishes" aria-label="Search dishes" data-i18n-ph="search_ph" data-i18n-aria="search_ph">
+      <p class="hint" data-i18n="manage_hint">Heart the ones you love, mark the ones you'd rather see less, hide any you're done with, and tick "bean" to correct my guesses.</p>
       <ul class="manage-list" id="manageList"></ul>
     </div>
   </dialog>
@@ -175,14 +180,14 @@
   <!-- Backup -->
   <dialog id="backupDlg">
     <div class="dlg">
-      <h3>Backup</h3>
-      <p class="hint">Move your favourites and added dishes to another phone or computer.</p>
+      <h3 data-i18n="backup_title">Backup</h3>
+      <p class="hint" data-i18n="backup_hint">Move your favourites and added dishes to another phone or computer.</p>
       <div class="dlg-btns left">
-        <button class="btn soft" type="button" id="exportBtn">Download backup</button>
-        <label class="btn soft file">Restore from file<input type="file" id="importFile" accept="application/json" hidden></label>
+        <button class="btn soft" type="button" id="exportBtn" data-i18n="download_backup">Download backup</button>
+        <label class="btn soft file"><span data-i18n="restore_file">Restore from file</span><input type="file" id="importFile" accept="application/json" hidden></label>
       </div>
       <div class="dlg-btns">
-        <button class="btn ghost" type="button" data-close>Close</button>
+        <button class="btn ghost" type="button" data-close data-i18n="close">Close</button>
       </div>
     </div>
   </dialog>
@@ -190,6 +195,8 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="data.js"></script>
+  <script src="sk-dishes.js"></script>
+  <script src="i18n.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

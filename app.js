@@ -3,18 +3,31 @@
 
   const KEY = 'beanAppetit.v1';
   const SEASONS = [
-    { k: 'spring', c: 'sp', l: 'Spring' },
-    { k: 'summer', c: 'su', l: 'Summer' },
-    { k: 'autumn', c: 'au', l: 'Autumn' },
-    { k: 'winter', c: 'wi', l: 'Winter' }
+    { k: 'spring', c: 'sp' },
+    { k: 'summer', c: 'su' },
+    { k: 'autumn', c: 'au' },
+    { k: 'winter', c: 'wi' }
   ];
-  const DAYS = ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
   const BEAN_COLOURS = ['#f4c4bf', '#e9bdb8', '#f8dcb0', '#c9e3c5', '#d3cbec', '#f4e7a8'];
 
   const $ = (s, r = document) => r.querySelector(s);
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const pretty = t => String(t || '').replace(/_/g, ' ');
   const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+
+  /* ---------- Language ---------- */
+  const L = () => window.I18N[S.lang] || window.I18N.en;
+  const t = (key, vars) => {
+    let v = L()[key];
+    if (v === undefined) v = window.I18N.en[key];
+    if (v === undefined) return key;
+    return typeof v === 'string' && vars ? v.replace(/\{(\w+)\}/g, (_, k) => (vars[k] ?? '')) : v;
+  };
+  const dayName = i => L().days[i];
+  const dayShort = i => L().days_short[i];
+  const dname = d => (S.lang === 'sk' && window.SK_DISHES && window.SK_DISHES[d.name]) || d.name;
+  const beanName = k => (L().bean && L().bean[k]) || cap(pretty(k));
+  const guessLang = () => ((navigator.language || '').toLowerCase().startsWith('sk') ? 'sk' : 'en');
 
   /* ---------- Dates ---------- */
   const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -25,7 +38,7 @@
     const d = today();
     return addDays(d, (6 - d.getDay() + 7) % 7);
   }
-  const fmtShort = d => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  const fmtShort = d => d.toLocaleDateString(L().locale, { day: 'numeric', month: 'short' });
   function seasonNow() {
     const m = new Date().getMonth();
     if (m >= 2 && m <= 4) return 'spring';
@@ -37,7 +50,7 @@
   /* ---------- State ---------- */
   const blankDay = () => ({ dish: null, locked: false, off: false, offLabel: '', note: '', bake: null, sweet: null });
   const defaults = () => ({
-    season: seasonNow(), diet: 'fish', dinners: false,
+    lang: guessLang(), season: seasonNow(), diet: 'fish', dinners: false,
     week: null, weekStart: null, boost: false,
     favs: {}, less: {}, hidden: {}, beanOv: {}, custom: [], history: []
   });
@@ -117,7 +130,7 @@
     const targets = wk.map((_, i) => i).filter(i => !wk[i].locked && !wk[i].off);
     const keep = new Set(wk.filter(d => d.locked && d.dish).map(d => d.dish));
     const all = candidates(beanOnly);
-    if (!all.length) { toast('No dishes match those settings. Try widening them.'); return; }
+    if (!all.length) { toast(t('t_nomatch')); return; }
 
     const pool = all.filter(d => !keep.has(d.id));
     const recent = recentIds();
@@ -138,7 +151,7 @@
     S.boost = !!beanOnly;
     recordHistory();
     save(); render();
-    if (repeats) toast('Small pool for this season, so a dish or two repeats.');
+    if (repeats) toast(t('t_repeat'));
   }
 
   function reroll(i) {
@@ -150,7 +163,7 @@
     if (!opts.length) opts = all.filter(d => !inWeek.has(d.id));
     if (!opts.length) opts = all.filter(d => d.id !== wk[i].dish);
     const d = pick(opts);
-    if (!d) { toast('No other dishes match.'); return; }
+    if (!d) { toast(t('t_noother')); return; }
     wk[i].dish = d.id;
     wk[i].off = false;
     recordHistory(); save(); render();
@@ -160,7 +173,7 @@
     ensureWeek();
     const wk = S.week;
     const free = wk.map((_, i) => i).filter(i => !wk[i].off && !wk[i][kind]);
-    if (!free.length) { toast('Every day already has one.'); return; }
+    if (!free.length) { toast(t('t_every')); return; }
     const code = sc();
     const taken = new Set(wk.map(d => d[kind]).filter(Boolean));
     let opts = window.EXTRAS.filter(e => e.kind === kind && (!e.seasons.length || e.seasons.includes(code)) && !taken.has(e.id));
@@ -169,7 +182,7 @@
     const i = free[Math.floor(Math.random() * free.length)];
     wk[i][kind] = e.id;
     save(); render();
-    toast(`${e.name} added to ${DAYS[i]}.`);
+    toast(t('t_added_to', { name: dname(e), day: dayName(i) }));
   }
   const extraById = id => window.EXTRAS.find(e => e.id === id);
 
@@ -187,14 +200,14 @@
     if (/^https?:\/\//.test(src)) {
       let host = 'recipe';
       try { host = new URL(src).hostname.replace(/^www\./, ''); } catch { /* keep default */ }
-      return `<a href="${esc(src)}" target="_blank" rel="noopener">Recipe on ${esc(host)}</a>`;
+      return `<a href="${esc(src)}" target="_blank" rel="noopener">${esc(t('recipe_on', { host }))}</a>`;
     }
-    return esc(src);
+    return esc(src === 'My recipe' ? t('my_recipe') : src);
   }
 
   function renderSeasons() {
     $('#seasons').innerHTML = SEASONS.map(s =>
-      `<button type="button" role="radio" class="season" data-s="${s.k}" aria-checked="${S.season === s.k}">${s.l}</button>`
+      `<button type="button" role="radio" class="season" data-s="${s.k}" aria-checked="${S.season === s.k}">${esc(t(s.k))}</button>`
     ).join('');
     document.body.dataset.season = S.season;
   }
@@ -204,30 +217,30 @@
     const dish = d.dish ? byId.get(d.dish) : null;
     const extras = ['bake', 'sweet'].map(k => {
       const e = d[k] && extraById(d[k]);
-      return e ? `<span class="chip ${k}">${esc(e.name)}<button type="button" data-act="rmextra" data-k="${k}" data-i="${i}" aria-label="Remove ${esc(e.name)}">&times;</button></span>` : '';
+      return e ? `<span class="chip ${k}">${esc(dname(e))}<button type="button" data-act="rmextra" data-k="${k}" data-i="${i}" aria-label="${esc(t('remove', { name: dname(e) }))}">&times;</button></span>` : '';
     }).join('');
     let body;
     if (d.off) {
-      body = `<p class="dish-name off">${esc(d.offLabel || 'Eating out or away')}</p>`;
+      body = `<p class="dish-name off">${esc(d.offLabel || t('eating_out_default'))}</p>`;
     } else if (dish) {
-      const chip = isBean(dish) ? `<span class="chip bean">${esc(cap(pretty(dish.bean)))}</span>` : '';
-      body = `<p class="dish-name">${esc(dish.name)}</p>` +
+      const chip = isBean(dish) ? `<span class="chip bean">${esc(beanName(dish.bean))}</span>` : '';
+      body = `<p class="dish-name">${esc(dname(dish))}</p>` +
         (dish.source ? `<p class="src">${sourceHtml(dish.source)}</p>` : '') +
         (chip || extras ? `<div class="chips">${chip}${extras}</div>` : '');
     } else {
-      body = `<p class="dish-name empty">Nothing picked yet</p>`;
+      body = `<p class="dish-name empty">${esc(t('nothing_yet'))}</p>`;
     }
     const note = d.note ? `<p class="note">${esc(d.note)}</p>` : '';
     const extrasWhenOff = d.off && extras ? `<div class="chips">${extras}</div>` : '';
     const fav = dish && S.favs[dish.id];
     return `<li class="day${d.locked ? ' locked' : ''}" data-i="${i}">
-      <div class="day-name"><b>${DAYS[i].slice(0, 3)}</b><small>${date}</small></div>
+      <div class="day-name"><b>${esc(dayShort(i))}</b><small>${date}</small></div>
       <div class="day-body">${body}${extrasWhenOff}${note}</div>
       <div class="icons">
-        <button class="icon-btn lock" type="button" data-act="lock" aria-pressed="${d.locked}" aria-label="${d.locked ? 'Unlock' : 'Lock'} ${DAYS[i]}" title="${d.locked ? 'Unlock' : 'Lock this day'}">${d.locked ? ICONS.lock : ICONS.unlock}</button>
-        <button class="icon-btn" type="button" data-act="reroll" aria-label="Pick a different dish for ${DAYS[i]}" title="Swap for something else" ${d.locked || d.off ? 'disabled style="opacity:.35;cursor:default"' : ''}>${ICONS.swap}</button>
-        ${dish && !d.off ? `<button class="icon-btn fav" type="button" data-act="fav" aria-pressed="${!!fav}" aria-label="Favourite" title="Favourite">${ICONS.heart}</button>` : ''}
-        <button class="icon-btn" type="button" data-act="more" aria-label="More options for ${DAYS[i]}" title="More">${ICONS.more}</button>
+        <button class="icon-btn lock" type="button" data-act="lock" aria-pressed="${d.locked}" aria-label="${esc(t(d.locked ? 'unlock_aria' : 'lock_aria', { day: dayName(i) }))}" title="${esc(d.locked ? t('unlock') : t('lock_day'))}">${d.locked ? ICONS.lock : ICONS.unlock}</button>
+        <button class="icon-btn" type="button" data-act="reroll" aria-label="${esc(t('swap_aria', { day: dayName(i) }))}" title="${esc(t('swap_title'))}" ${d.locked || d.off ? 'disabled style="opacity:.35;cursor:default"' : ''}>${ICONS.swap}</button>
+        ${dish && !d.off ? `<button class="icon-btn fav" type="button" data-act="fav" aria-pressed="${!!fav}" aria-label="${esc(t('fav'))}" title="${esc(t('fav'))}">${ICONS.heart}</button>` : ''}
+        <button class="icon-btn" type="button" data-act="more" aria-label="${esc(t('more_aria', { day: dayName(i) }))}" title="${esc(t('more'))}">${ICONS.more}</button>
       </div>
     </li>`;
   }
@@ -235,18 +248,18 @@
   function renderBeanCount() {
     const wk = S.week;
     const n = wk.filter(d => !d.off && d.dish && isBean(byId.get(d.dish))).length;
-    const types = [...new Set(wk.filter(d => !d.off && d.dish).map(d => byId.get(d.dish)).filter(isBean).map(d => d.bean).filter(t => t !== 'beans'))].map(pretty);
+    const types = [...new Set(wk.filter(d => !d.off && d.dish).map(d => byId.get(d.dish)).filter(isBean).map(d => d.bean).filter(b => b !== 'beans'))].map(b => beanName(b).toLowerCase());
     const dots = wk.map(d => `<i class="${!d.off && d.dish && isBean(byId.get(d.dish)) ? 'on' : ''}"></i>`).join('');
     let line;
-    if (n === 7) line = 'A full bean week. Magnificent.';
-    else if (n === 0) line = 'No beans this week. Press Bean Boost! to fix that.';
-    else line = types.length ? `Lineup: ${listJoin(types)}.` : 'Beans and pulses on the menu.';
-    if (n === 7 && types.length) line = `A full bean week: ${listJoin(types)}.`;
-    $('#beanCount').innerHTML = `<div class="dots" aria-hidden="true">${dots}</div><strong>${n} of 7 days powered by beans</strong><p>${esc(line)}</p>`;
+    if (n === 7) line = t('full_bean');
+    else if (n === 0) line = t('no_beans');
+    else line = types.length ? t('lineup', { list: listJoin(types) }) : t('beans_on_menu');
+    if (n === 7 && types.length) line = t('full_bean_list', { list: listJoin(types) });
+    $('#beanCount').innerHTML = `<div class="dots" aria-hidden="true">${dots}</div><strong>${esc(t('beans_of', { n }))}</strong><p>${esc(line)}</p>`;
   }
   function listJoin(a) {
     if (a.length <= 1) return a.join('');
-    return a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1];
+    return a.slice(0, -1).join(', ') + ' ' + t('and') + ' ' + a[a.length - 1];
   }
 
   function render() {
@@ -256,10 +269,11 @@
     $('#diet').value = S.diet;
     $('#dinners').checked = S.dinners;
     const start = fromIso(S.weekStart);
-    $('#weekTitle').textContent = `Week of ${start.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}`;
+    const dateOpts = S.lang === 'sk' ? { day: 'numeric', month: 'long' } : { weekday: 'long', day: 'numeric', month: 'long' };
+    $('#weekTitle').textContent = t('week_of', { date: start.toLocaleDateString(L().locale, dateOpts) });
     $('#boostFlag').hidden = !S.boost;
     $('#boost').setAttribute('aria-pressed', String(!!S.boost));
-    $('#boostLabel').textContent = S.boost ? 'Boosted! ✓' : 'Bean Boost!';
+    $('#boostLabel').textContent = S.boost ? t('boosted') : t('boost');
     $('#days').innerHTML = S.week.map((d, i) => dayRow(d, i, start)).join('');
     renderBeanCount();
   }
@@ -294,10 +308,10 @@
   function openDay(i) {
     editing = i;
     const d = S.week[i];
-    $('#dayDlgTitle').textContent = DAYS[i];
-    const list = allDishes().filter(x => !S.hidden[x.id]).sort((a, b) => a.name.localeCompare(b.name));
-    $('#dayDish').innerHTML = '<option value="">Nothing picked</option>' +
-      list.map(x => `<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('');
+    $('#dayDlgTitle').textContent = dayName(i);
+    const list = allDishes().filter(x => !S.hidden[x.id]).sort((a, b) => dname(a).localeCompare(dname(b), L().locale));
+    $('#dayDish').innerHTML = `<option value="">${esc(t('nothing_picked_opt'))}</option>` +
+      list.map(x => `<option value="${esc(x.id)}">${esc(dname(x))}</option>`).join('');
     $('#dayDish').value = d.dish || '';
     $('#dayOff').checked = d.off;
     $('#dayOffLabel').value = d.offLabel || '';
@@ -344,28 +358,28 @@
     save(); render();
     $('#addForm').reset();
     $('#addDlg').close();
-    toast(`"${name}" added. It will turn up more often for a while.`);
+    toast(t('t_added', { name }));
   });
 
   /* ---------- Manage dishes ---------- */
   function renderManage() {
     const q = $('#manageSearch').value.trim().toLowerCase();
     const list = allDishes()
-      .filter(d => !q || d.name.toLowerCase().includes(q) || (d.source || '').toLowerCase().includes(q))
-      .sort((a, b) => a.name.localeCompare(b.name));
+      .filter(d => !q || d.name.toLowerCase().includes(q) || dname(d).toLowerCase().includes(q) || (d.source || '').toLowerCase().includes(q))
+      .sort((a, b) => dname(a).localeCompare(dname(b), L().locale));
     $('#manageList').innerHTML = list.map(d => {
-      const seasons = d.seasons.length ? d.seasons.map(c => SEASONS.find(s => s.c === c).l).join(', ') : 'All year';
-      const meta = [seasons, d.protein === 'veg' ? 'Vegetarian' : d.protein === 'fish' ? 'Fish' : 'Meat', d.dinner ? 'Dinner-style' : '', d.custom ? 'Yours' : ''].filter(Boolean).join(' · ');
+      const seasons = d.seasons.length ? d.seasons.map(c => t(SEASONS.find(s => s.c === c).k)).join(', ') : t('all_year');
+      const meta = [seasons, d.protein === 'veg' ? t('meta_veg') : d.protein === 'fish' ? t('meta_fish') : t('meta_meat'), d.dinner ? t('meta_dinner') : '', d.custom ? t('meta_yours') : ''].filter(Boolean).join(' · ');
       return `<li class="${S.hidden[d.id] ? 'hidden-dish' : ''}" data-id="${esc(d.id)}">
-        <div><div class="m-name">${esc(d.name)}</div><div class="m-meta">${esc(meta)}</div></div>
+        <div><div class="m-name">${esc(dname(d))}</div><div class="m-meta">${esc(meta)}</div></div>
         <div class="m-tools">
-          <label class="check"><input type="checkbox" data-m="bean" ${isBean(d) ? 'checked' : ''}><span>bean</span></label>
-          <button class="tool" type="button" data-m="fav" aria-pressed="${!!S.favs[d.id]}">Love</button>
-          <button class="tool less" type="button" data-m="less" aria-pressed="${!!S.less[d.id]}">Less</button>
-          <button class="tool hide" type="button" data-m="hide" aria-pressed="${!!S.hidden[d.id]}">${S.hidden[d.id] ? 'Hidden' : 'Hide'}</button>
-          ${d.custom ? '<button class="tool" type="button" data-m="del">Delete</button>' : ''}
+          <label class="check"><input type="checkbox" data-m="bean" ${isBean(d) ? 'checked' : ''}><span>${esc(t('bean_word'))}</span></label>
+          <button class="tool" type="button" data-m="fav" aria-pressed="${!!S.favs[d.id]}">${esc(t('love'))}</button>
+          <button class="tool less" type="button" data-m="less" aria-pressed="${!!S.less[d.id]}">${esc(t('less'))}</button>
+          <button class="tool hide" type="button" data-m="hide" aria-pressed="${!!S.hidden[d.id]}">${esc(S.hidden[d.id] ? t('hidden') : t('hide'))}</button>
+          ${d.custom ? `<button class="tool" type="button" data-m="del">${esc(t('del'))}</button>` : ''}
         </div></li>`;
-    }).join('') || '<li><span class="m-meta">Nothing matches that search.</span></li>';
+    }).join('') || `<li><span class="m-meta">${esc(t('no_match'))}</span></li>`;
   }
   $('#manageSearch').addEventListener('input', renderManage);
   $('#manageList').addEventListener('click', e => {
@@ -377,7 +391,7 @@
     else if (m === 'less') { S.less[id] ? delete S.less[id] : (S.less[id] = true, delete S.favs[id]); }
     else if (m === 'hide') { S.hidden[id] ? delete S.hidden[id] : (S.hidden[id] = true); }
     else if (m === 'del') {
-      if (!confirm('Delete this dish for good?')) return;
+      if (!confirm(t('t_confirm_del'))) return;
       S.custom = S.custom.filter(d => d.id !== id);
       S.week.forEach(d => { if (d.dish === id) d.dish = null; });
     } else return;
@@ -408,32 +422,32 @@
       S = Object.assign(defaults(), data);
       save(); render();
       $('#backupDlg').close();
-      toast('Backup restored.');
-    } catch { toast('That file could not be read.'); }
+      toast(t('t_restored'));
+    } catch { toast(t('t_badfile')); }
     e.target.value = '';
   });
 
   /* ---------- Copy ---------- */
   function weekText() {
     const start = fromIso(S.weekStart);
-    const lines = [`${$('#appName').textContent}: lunches, week of ${fmtShort(start)}`, ''];
+    const lines = [t('copy_head', { app: $('#appName').textContent, date: fmtShort(start) }), ''];
     S.week.forEach((d, i) => {
       const dish = d.dish && byId.get(d.dish);
-      let t = d.off ? (d.offLabel || 'Eating out or away') : dish ? dish.name + (dish.source && !/^https?:/.test(dish.source) ? ` (${dish.source})` : '') : '-';
-      const ex = ['bake', 'sweet'].map(k => d[k] && extraById(d[k])?.name).filter(Boolean);
-      if (ex.length) t += ` + ${ex.join(', ')}`;
-      if (d.note) t += ` [${d.note}]`;
-      lines.push(`${DAYS[i].slice(0, 3)}: ${t}`);
+      let line = d.off ? (d.offLabel || t('eating_out_default')) : dish ? dname(dish) + (dish.source && !/^https?:/.test(dish.source) ? ` (${dish.source === 'My recipe' ? t('my_recipe') : dish.source})` : '') : '-';
+      const ex = ['bake', 'sweet'].map(k => d[k] && extraById(d[k]) && dname(extraById(d[k]))).filter(Boolean);
+      if (ex.length) line += ` + ${ex.join(', ')}`;
+      if (d.note) line += ` [${d.note}]`;
+      lines.push(`${dayShort(i)}: ${line}`);
     });
     return lines.join('\n');
   }
   async function copyText() {
     const txt = weekText();
-    try { await navigator.clipboard.writeText(txt); toast('Copied. Ready to paste.'); }
+    try { await navigator.clipboard.writeText(txt); toast(t('t_copied')); }
     catch {
       const ta = document.createElement('textarea');
       ta.value = txt; document.body.appendChild(ta); ta.select();
-      try { document.execCommand('copy'); toast('Copied. Ready to paste.'); } catch { toast('Copy is not available here.'); }
+      try { document.execCommand('copy'); toast(t('t_copied')); } catch { toast(t('t_nocopy')); }
       ta.remove();
     }
   }
@@ -444,7 +458,7 @@
     if (!b) return;
     S.season = b.dataset.s;
     save(); renderSeasons();
-    toast(`${cap(S.season)} it is. Press Generate for a ${S.season} week.`);
+    toast(t('t_season', { season: t(S.season) }));
   });
   $('#diet').addEventListener('change', e => { S.diet = e.target.value; save(); });
   $('#dinners').addEventListener('change', e => { S.dinners = e.target.checked; save(); });
@@ -461,7 +475,7 @@
     flash($('#boost'), 'pop');
     flash($('#menu'), 'boosted');
     burst();
-    toast('Bean Boost! Seven days of beans and pulses.');
+    toast(t('t_boost'));
     // On small screens the menu sits below the buttons, so bring it into view.
     const r = $('#menu').getBoundingClientRect();
     if (r.top > window.innerHeight * 0.6) {
@@ -496,9 +510,28 @@
     }
   });
 
+  /* ---------- Language switching ---------- */
+  function applyStatic() {
+    document.documentElement.lang = S.lang;
+    document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+    document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
+    document.querySelectorAll('[data-i18n-aria]').forEach(el => { el.setAttribute('aria-label', t(el.dataset.i18nAria)); });
+    document.querySelectorAll('#addBean option[value]:not([value=""])').forEach(o => { o.textContent = beanName(o.value); });
+    document.querySelectorAll('#lang [data-lang]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === S.lang)));
+    $('#appName').textContent = window.APP_NAME;
+    document.title = window.APP_NAME;
+  }
+  $('#lang').addEventListener('click', e => {
+    const b = e.target.closest('[data-lang]');
+    if (!b || b.dataset.lang === S.lang) return;
+    S.lang = b.dataset.lang;
+    save(); applyStatic(); render();
+    if ($('#manageDlg').open) renderManage();
+    if ($('#dayDlg').open) $('#dayDlg').close();
+  });
+
   /* ---------- Boot ---------- */
-  $('#appName').textContent = window.APP_NAME;
-  document.title = window.APP_NAME;
+  applyStatic();
   const fresh = ensureWeek();
   allDishes();
   if (fresh || !S.week.some(d => d.dish)) generate(false);
