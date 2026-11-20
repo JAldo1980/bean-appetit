@@ -258,6 +258,8 @@
     const start = fromIso(S.weekStart);
     $('#weekTitle').textContent = `Week of ${start.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}`;
     $('#boostFlag').hidden = !S.boost;
+    $('#boost').setAttribute('aria-pressed', String(!!S.boost));
+    $('#boostLabel').textContent = S.boost ? 'Boosted! ✓' : 'Bean Boost!';
     $('#days').innerHTML = S.week.map((d, i) => dayRow(d, i, start)).join('');
     renderBeanCount();
   }
@@ -447,9 +449,24 @@
   $('#diet').addEventListener('change', e => { S.diet = e.target.value; save(); });
   $('#dinners').addEventListener('change', e => { S.dinners = e.target.checked; save(); });
   $('#gen').addEventListener('click', () => generate(false));
+  function flash(el, cls) {
+    el.classList.remove(cls);
+    void el.offsetWidth; // restart the animation
+    el.classList.add(cls);
+    setTimeout(() => el.classList.remove(cls), 1400);
+  }
   $('#boost').addEventListener('click', () => {
     generate(true);
-    if (S.boost) { burst(); toast('Bean Boost! Seven days of beans and pulses.'); }
+    if (!S.boost) return;
+    flash($('#boost'), 'pop');
+    flash($('#menu'), 'boosted');
+    burst();
+    toast('Bean Boost! Seven days of beans and pulses.');
+    // On small screens the menu sits below the buttons, so bring it into view.
+    const r = $('#menu').getBoundingClientRect();
+    if (r.top > window.innerHeight * 0.6) {
+      $('#menu').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+    }
   });
   $('#addBake').addEventListener('click', () => addExtra('bake'));
   $('#addSweet').addEventListener('click', () => addExtra('sweet'));

@@ -123,6 +123,19 @@ select, input[type="text"], input[type="search"] {
 .btn.boost { background: var(--blush); border-color: #e5b9b3; color: var(--blush-ink); }
 .btn.boost svg { width: 20px; height: 20px; fill: #fffaf2; stroke: #c98f8a; stroke-width: 2; }
 .btn.boost:hover svg { animation: wiggle .5s; }
+/* Stays lit while the week is boosted, so it's clear the mode is on */
+.btn.boost[aria-pressed="true"] {
+  background: #eeb0aa;
+  border-color: #c98f8a;
+  box-shadow: 0 0 0 3px rgba(238, 176, 170, .45);
+}
+.btn.boost.pop { animation: pop .55s ease; }
+@keyframes pop { 0% { transform: scale(1); } 35% { transform: scale(1.07); } 100% { transform: scale(1); } }
+.menu.boosted { animation: menuGlow 1.3s ease; }
+@keyframes menuGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(238, 176, 170, 0); border-color: var(--line); }
+  30% { box-shadow: 0 0 0 6px rgba(238, 176, 170, .5); border-color: #e5b9b3; }
+}
 .btn.soft { background: var(--butter); border-color: #ebd998; color: var(--butter-ink); min-height: 40px; padding: 8px 14px; }
 .btn.ghost { background: transparent; }
 .btn.small { min-height: 36px; padding: 6px 12px; }
@@ -316,6 +329,7 @@ fieldset.stack legend { padding: 0; }
 @media (prefers-reduced-motion: reduce) {
   .btn, .toast { transition: none; }
   .btn.boost:hover svg { animation: none; }
+  .btn.boost.pop, .menu.boosted { animation: none; }
 }
 
 /* ---------- Small screens ---------- */
