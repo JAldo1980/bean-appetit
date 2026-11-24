@@ -356,6 +356,8 @@ fieldset.stack legend { padding: 0; }
   .m-tools { justify-content: flex-start; }
 }
 
+.credit { margin: 6px 0 0; font-size: .78rem; letter-spacing: .04em; color: var(--muted); text-align: center; }
+
 /* ---------- Print ---------- */
 @media print {
   body { background: #fff; padding: 0; }
